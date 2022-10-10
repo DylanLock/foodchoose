@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+
+  server:
+    image: nginx
+    volumes:
+      - ./templates:/etc/nginx/templates
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_HOST=foobar.com
+      - NGINX_PORT=80
+
+  mongo:
+    image: mongo
+    volumes:
+      - ./data/db:/var/lib/mongodb/data
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      ME_CONFIG_MONGODB_SERVER: ''
+      # ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    #restart: always
+    ports:
+      - 8081:8081
+    links:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_SERVER: mongo
+      #ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+    depends_on:
+      - mongo
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - db
+
+
+# f08333730a17 docker-compose run --rm djangonew_web  ls
+
+
+# https://github.com/DylanLock/foodchoose.git
+
+
+# git remote set-url origin git@github.com:DylanLock/your-repository.git
